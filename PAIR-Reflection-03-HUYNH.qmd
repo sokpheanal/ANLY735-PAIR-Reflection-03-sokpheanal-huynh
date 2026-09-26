@@ -42,7 +42,7 @@ Because CP intervals carry finite-sample coverage guarantees under exchangeabili
 This week's guiding question asks how understanding predictive uncertainty changes what it means to trust an individual prediction.
 The paper's answer is concrete: trust requires more than a calibrated interval.
 A clinician or risk analyst who gets a wide prediction interval needs to know if that width comes from one noisy feature or from a structural interaction across several.
-Without that diagnosis, the model is uncertain here becomes an unclear warning instead of a signal the practitioner can use.
+Without that diagnosis, "the model is uncertain here" becomes an unclear warning instead of a signal the practitioner can use.
 The paper recasts trust in a prediction as trust in how its uncertainty is broken down, and it gives a formal way to do that.
 
 # A — Analyze
