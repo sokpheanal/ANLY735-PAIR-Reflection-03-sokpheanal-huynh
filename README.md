@@ -6,15 +6,15 @@ Anchor paper: Il Idrissi et al. (2025), "Unveil Sources of Uncertainty: Feature 
 
 ## Files
 
-- `pair-reflection.qmd` — Quarto source
+- `PAIR-Reflection-03-HUYNH.qmd` — Quarto source
 - `references.bib` — BibTeX references
 - `apa.csl` — APA 7th edition citation style
 - `custom-reference.docx` — Word reference document (fonts, spacing, heading styles)
-- `pair-reflection.docx` — rendered output (after `quarto render`)
+- `PAIR-Reflection-03-HUYNH.docx` — rendered output (after `quarto render`)
 
 ## Render
 
 ```bash
-quarto render pair-reflection.qmd
+quarto render PAIR-Reflection-03-HUYNH.qmd
 ```
 
