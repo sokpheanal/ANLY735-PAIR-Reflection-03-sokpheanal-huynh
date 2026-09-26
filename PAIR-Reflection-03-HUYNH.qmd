@@ -21,6 +21,8 @@ bibliography: references.bib
 **Publication:** arXiv preprint (cs.AI)
 
 **DOI/URL:** https://arxiv.org/abs/2505.13118
+
+**Assignment Repository:** https://github.com/sokpheanal/ANLY735-PAIR-Reflection-03-sokpheanal-huynh/tree/main
 :::
 ```{=openxml}
 <w:p><w:pPr><w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/><w:lnNumType w:countBy="1" w:restart="continuous"/><w:cols w:space="720"/><w:vAlign w:val="center"/><w:docGrid w:linePitch="360"/></w:sectPr></w:pPr></w:p>
