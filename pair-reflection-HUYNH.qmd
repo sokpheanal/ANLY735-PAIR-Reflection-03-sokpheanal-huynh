@@ -1,0 +1,117 @@
+---
+title: "PAIR Scholarly Reflection"
+subtitle: "ANLY 735 – Research Seminar in Predictive AI"
+author: "Sokpheanal Huynh"
+date: today
+format:
+  docx:
+    toc: false
+    reference-doc: custom-reference.docx
+csl: apa.csl
+bibliography: references.bib
+---
+
+# Paper
+
+::: {custom-style="Center"}
+**Article:** Unveil Sources of Uncertainty: Feature Contribution to Conformal Prediction Intervals
+
+**Authors:** Marouane Il Idrissi, Agathe Fernandes Machado, Ewen Gallic, Arthur Charpentier
+
+**Publication:** arXiv preprint (cs.AI)
+
+**DOI/URL:** https://arxiv.org/abs/2505.13118
+:::
+```{=openxml}
+<w:p><w:pPr><w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="708" w:footer="708" w:gutter="0"/><w:lnNumType w:countBy="1" w:restart="continuous"/><w:cols w:space="720"/><w:vAlign w:val="center"/><w:docGrid w:linePitch="360"/></w:sectPr></w:pPr></w:p>
+```
+# P — Position
+
+## What is the paper trying to establish?
+
+Standard explainability tools like SHAP decompose a model’s point prediction into per-feature contributions [@lundberg2017unified]. 
+That decomposition answers the question “why did the model predict this value?”
+However, the decomposition itself says nothing about how reliable that value is.
+@ilidrissi2025unveil argue that this is a gap worth closing.
+Their paper asks a different question: which input features are responsible for the width and placement of a prediction's conformal interval?
+
+The contribution is a model-agnostic framework that treats properties of conformal prediction (CP) intervals, specifically width, lower bound, and upper bound, as value functions in cooperative games.
+Shapley values and their proportional variant [@beal2018proportional] then allocate those interval properties back to individual features.
+Because CP intervals carry finite-sample coverage guarantees under exchangeability [@shafer2008tutorial], the resulting attributions are grounded in a quantity with known statistical meaning, not just a model-internal score.
+
+This week's guiding question asks how understanding predictive uncertainty changes what it means to trust an individual prediction.
+The paper's answer is concrete: trust requires more than a calibrated interval.
+A clinician or risk analyst who gets a wide prediction interval needs to know if that width comes from one noisy feature or from a structural interaction across several.
+Without that diagnosis, the model is uncertain here becomes an unclear warning instead of a signal the practitioner can use.
+The paper recasts trust in a prediction as trust in how its uncertainty is broken down, and it gives a formal way to do that.
+
+# A — Analyze
+
+## How convincing is the evidence?
+
+The experimental design has two tiers, and they differ in persuasiveness.
+
+The first tier is a modified Friedman benchmark (Section 4.2) where the data-generating process is fully specified.
+The target $Y$ is drawn from $\mathcal{N}(Z, V)$, so the features governing the mean ($X_6$ through $X_{10}$) and those governing the variance ($X_1$ through $X_5$) are known by construction, and $X_{11}$ is pure noise.
+This is the strongest evidence in the paper.
+Figure 2 shows that CP-based width attributions recover contributions from both the mean-governing and the variance-governing features, while conditional-mean SHAP ignores the latter and conditional-variance decomposition ignores the former.
+The CP-based measures sit between the two, confirming that quantile-based intervals capture information that no single moment decomposition does.
+This result is clean and well-controlled.
+
+The second tier covers seven real-world datasets (bike sharing, blog comments, concrete strength, and others), each split into 80% train/calibration and 20% test, with the training portion itself split 80/20 for model fitting and conformity-score calibration.
+The authors compare feature rankings across three CP variants, SMR, LACP, and CQR.
+They also test several learners, including linear regression, LightGBM, and Random Forest, plus two allocation rules, Shapley and proportional Shapley.
+These experiments demonstrate that rankings differ across methods and models, but they cannot tell us which ranking is correct, because no ground-truth attribution exists for real data.
+The evaluation relies on rank-frequency heatmaps and top-5 bar charts, visual tools that show how often each feature lands in a given position.
+These are informative for exploration, but the paper does not report a formal metric for attribution quality (coverage fidelity, interval score, or agreement rate between allocations).
+It treats disagreement between allocation rules as informative in itself (Section 4.3), arguing that stability signals confidence and instability signals complexity.
+That interpretation is reasonable, but it is a heuristic, not a validation.
+
+The Monte Carlo approximation (Algorithm 2) is well-supported. Theorem 1 proves unbiasedness, consistency, and asymptotic normality, and Figure 1 shows empirical convergence with a tenfold speedup at $m = 1{,}000$ permutations on the 16-feature Sobol' benchmark. All code is provided in R, and the package dependencies are named explicitly, which makes replication straightforward.
+
+Where the evidence is thinner: the paper does not benchmark its CP-based attributions against competing UA methods. @watson2023explaining decompose uncertainty via Shapley values targeting entropy, and @mehdiyev2025integrating apply permutation importance directly to CP intervals. The paper cites both but compares against neither quantitatively, so the practical advantage of the proposed approach over existing alternatives remains an open question.
+
+# I — Interrogate
+
+## What should a critical data scientist question?
+
+The entire framework depends on a single assumption: exchangeability of the calibration data.
+CP's finite-sample coverage guarantee, $1 - \alpha \leq P(Y_{n+1} \in \hat{C}(X_{n+1}))$, holds under exchangeability but can break down with distributional drift or temporal dependence [@zaffran2024posthoc].
+The authors acknowledge this scope but do not test it. Each dataset in the experiments is either i.i.d. by construction, as with the synthetic benchmarks, or researchers treat it as i.i.d. after a random train, calibration, and test split, as with the real-world datasets.
+If the bike-sharing data followed chronological order, for example, seasonal patterns could break exchangeability.
+The resulting intervals would then lose their coverage guarantees. At that point, an attribution of an invalid interval is itself suspect.
+
+This matters because many high-stakes prediction problems, the very domains the paper targets, involve time-indexed or spatially correlated data.
+Automated trading, energy forecasting, and clinical monitoring all have serial structure.
+A practitioner who applies this framework to such data without verifying exchangeability risks generating uncertainty attributions that look precise but rest on intervals with no coverage guarantee.
+The paper would have been stronger with at least one experiment on sequentially dependent data, using an adaptive CP method [@zaffran2024posthoc], to show whether the attributions remain stable when the underlying intervals must accommodate temporal structure.
+
+# R — Reimagine
+
+## How would you extend or improve the research?
+
+The natural extension is to apply CP-based uncertainty attribution to a time-series prediction task where the exchangeability assumption is violated by design.
+Concretely, I would adapt the framework to NLP-derived signals from Federal Reserve speeches used to predict the direction of interest rate changes.
+In that setting, the features are sentiment and topic scores extracted from FOMC communications, and the predictions are sequential (one per meeting cycle).
+Conformal methods for time series, such as the adaptive conformal inference variants discussed in @zaffran2024posthoc, would replace the split CP used here, and the width-based value function $v_{wCP}$ would be computed over those adaptive intervals.
+
+The research question becomes: which linguistic features of Fed communications contribute most to the model's predictive uncertainty about rate direction?
+That question has practical value for financial risk management, where knowing that uncertainty concentrates in forward-guidance language versus labor-market language would inform how analysts weight different sections of a speech.
+It would also provide a methodological test of whether the proportional Shapley allocation remains interpretable when the intervals themselves are non-stationary.
+The data requirements are modest (roughly 200 FOMC speeches since 2000), and the framework from @ilidrissi2025unveil transfers directly once the CP layer is swapped.
+If the attributions prove stable under adaptive CP, the study would validate the framework's applicability beyond i.i.d. settings.
+If they do not, it would expose a boundary condition that the current paper leaves untested.
+
+# Researcher Takeaway
+
+Knowing that a model is uncertain is less useful than knowing why it is uncertain.
+This paper shows that cooperative game theory, applied to conformal intervals rather than point predictions, can decompose "where the uncertainty comes from" into per-feature contributions with real statistical backing.
+For any predictive AI system deployed in a decision-making context, that decomposition is what turns an opaque confidence band into something a practitioner can act on.
+
+```{=openxml}
+<w:p><w:r><w:br w:type="page"/></w:r></w:p>
+```
+# References
+
+::: {#refs}
+:::
